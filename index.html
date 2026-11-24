@@ -1,0 +1,2509 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="artifact-type" content="dashboard">
+  <meta name="design-style" content="briefing">
+  <title>2026 化妝品製造 QC 異常與重工深度分析報告 (v5)</title>
+  <link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;0,8..60,700;1,8..60,400&family=Plus+Jakarta+Sans:wght@400;500;600;700&family=Geist+Mono:wght@400;500;600&family=Noto+Serif+TC:wght@600;700&family=Noto+Sans+TC:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.5.1/dist/chart.umd.min.js"></script>
+  <script src="https://unpkg.com/lucide@1.43.0/dist/umd/lucide.min.js"></script>
+  <style>
+    :root {
+      color-scheme: light;
+
+      /* Page and surfaces: warm stone-white paper (Briefing) */
+      --background: #faf9f5;
+      --surface-container-low: #ffffff;
+      --surface-container: #f1efe8;
+      --surface-container-high: #e6e2d6;
+
+      /* Ink */
+      --on-surface: #17181a;
+      --on-surface-variant: #56585c;
+
+      /* Rules */
+      --outline: #17181a;
+      --outline-variant: #dedad0;
+      --border-secondary: #c8c4b8;
+
+      /* Accents */
+      --primary: #17181a;
+      --on-primary: #faf9f5;
+      --primary-container: #f2b705;
+      --on-primary-container: #17181a;
+      --secondary: #1f4e5f;
+      --secondary-soft: #e6eff2;
+      --tertiary: #785008;
+      --tertiary-soft: #f5e6c4;
+      --error: #b42318;
+      --error-soft: #fdeceb;
+      --on-error: #ffffff;
+
+      /* Semantic tokens */
+      --positive: #2b6e52;
+      --positive-soft: #e6f2ec;
+      --warning: #b56500;
+      --warning-soft: #fdf2e2;
+      --focus: #1f4e5f;
+
+      /* Data series */
+      --data-1: #1f4e5f;
+      --data-2: #d99000;
+      --data-3: #2b6e52;
+      --data-4: #b84a39;
+      --data-5: #7d1a14;
+      --data-context: #c4bfb2;
+
+      /* Fonts */
+      --font-headline: 'Noto Serif TC', 'Source Serif 4', serif;
+      --font-body: 'Noto Sans TC', 'Plus Jakarta Sans', sans-serif;
+      --font-label: 'Geist Mono', 'Noto Sans TC', monospace;
+
+      /* Shape */
+      --rounded: 0.25rem;
+      --rounded-lg: 0.375rem;
+      --rounded-full: 0.25rem;
+      --badge-radius: 2px;
+
+      /* Style effects */
+      --section-rule: 1.5px solid var(--outline);
+      --card-border: 1px solid var(--outline-variant);
+      --shadow-float: 0 8px 24px rgb(23 24 26 / 0.08);
+      --shadow-layer-1: 0 12px 24px rgb(23 24 26 / 0.09);
+      --shadow-layer-2: 0 16px 32px rgb(31 78 95 / 0.12);
+      --heading-tracking: -0.015em;
+      --label-tracking: 0.06em;
+
+      /* Type scale (Dashboard / Executive Deck) */
+      --display-size: clamp(1.625rem, 1.35rem + 1.1vw, 2.25rem);
+      --headline-size: clamp(1.25rem, 1.08rem + 0.5vw, 1.5rem);
+      --subhead-size: clamp(1.03rem, 0.98rem + 0.2vw, 1.15rem);
+      --body-size: clamp(0.9375rem, 0.91rem + 0.12vw, 1rem);
+      --label-size: 0.75rem;
+
+      /* Spacing scale (4pt base) */
+      --space-xs: 0.25rem;
+      --space-sm: 0.5rem;
+      --space-md: 1rem;
+      --space-lg: 1.5rem;
+      --space-xl: 2.5rem;
+      --space-2xl: 4rem;
+
+      /* Motion */
+      --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+      --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+      --dur-micro: 120ms;
+      --dur-short: 220ms;
+      --dur-long: 420ms;
+    }
+
+    /* Base reset */
+    *, *::before, *::after { box-sizing: border-box; }
+    html, body {
+      overflow-x: clip;
+      margin: 0;
+      padding: 0;
+      background-color: var(--background);
+      color: var(--on-surface);
+      font-family: var(--font-body);
+      font-size: var(--body-size);
+      line-height: 1.6;
+      -webkit-font-smoothing: antialiased;
+    }
+    header { position: static !important; }
+    button, input, select, textarea { font-family: inherit; }
+
+    /* Focus rings */
+    :focus-visible {
+      outline: 2.5px solid var(--focus);
+      outline-offset: 2px;
+    }
+
+    /* App Shell */
+    .deck-shell {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      max-width: 1280px;
+      margin: 0 auto;
+      padding: var(--space-md) var(--space-lg);
+      gap: var(--space-md);
+    }
+
+    /* Header Masthead (static) */
+    .deck-masthead {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: var(--space-md);
+      border-bottom: var(--section-rule);
+      padding-bottom: var(--space-sm);
+    }
+    .masthead-brand {
+      display: flex;
+      align-items: center;
+      gap: var(--space-sm);
+      flex-wrap: wrap;
+    }
+    .dossier-pill {
+      background: var(--primary-container);
+      color: var(--on-primary-container);
+      font-family: var(--font-label);
+      font-weight: 700;
+      font-size: 0.72rem;
+      letter-spacing: var(--label-tracking);
+      text-transform: uppercase;
+      padding: 0.22rem 0.55rem;
+      border-radius: var(--badge-radius);
+      display: inline-flex;
+      align-items: center;
+      gap: var(--space-xs);
+    }
+    .masthead-title {
+      font-family: var(--font-body);
+      font-weight: 600;
+      font-size: 0.9375rem;
+      color: var(--on-surface);
+    }
+    .masthead-meta {
+      font-family: var(--font-label);
+      font-size: var(--label-size);
+      color: var(--on-surface-variant);
+      display: flex;
+      align-items: center;
+      gap: var(--space-sm);
+      flex-wrap: wrap;
+    }
+
+    /* Slide Navigation Pills Strip */
+    .slide-rail {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: var(--space-sm);
+      flex-wrap: wrap;
+    }
+    .slide-tabs {
+      display: flex;
+      align-items: center;
+      gap: var(--space-xs);
+      flex-wrap: wrap;
+    }
+    .slide-tab {
+      min-height: 44px;
+      padding: var(--space-xs) var(--space-md);
+      border: var(--card-border);
+      background: var(--surface-container-low);
+      color: var(--on-surface-variant);
+      border-radius: var(--rounded);
+      font-size: 0.84rem;
+      font-weight: 500;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: var(--space-xs);
+      transition: background-color var(--dur-micro) var(--ease-out),
+                  color var(--dur-micro) var(--ease-out),
+                  box-shadow var(--dur-micro) var(--ease-out);
+    }
+    .slide-tab:hover {
+      background: var(--surface-container);
+      color: var(--on-surface);
+    }
+    .slide-tab.is-active {
+      background: var(--primary);
+      color: var(--on-primary);
+      box-shadow: 0 2px 0 0 var(--primary-container);
+    }
+    .slide-tab .tab-num {
+      font-family: var(--font-label);
+      font-size: 0.72rem;
+      opacity: 0.85;
+    }
+
+    .view-mode-btn {
+      min-height: 44px;
+      padding: var(--space-xs) var(--space-md);
+      border: 1px solid var(--border-secondary);
+      background: var(--surface-container-low);
+      color: var(--secondary);
+      border-radius: var(--rounded);
+      font-size: 0.84rem;
+      font-weight: 600;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: var(--space-xs);
+      transition: background-color var(--dur-micro) var(--ease-out);
+    }
+    .view-mode-btn:hover {
+      background: var(--secondary-soft);
+    }
+    .view-mode-btn.is-active {
+      background: var(--secondary);
+      color: var(--on-primary);
+    }
+
+    /* Slide Stage */
+    .slide-stage {
+      flex: 1 1 auto;
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-lg);
+    }
+    .slide {
+      display: none;
+      flex-direction: column;
+      gap: var(--space-lg);
+      animation: slideEnter var(--dur-short) var(--ease-out);
+    }
+    .slide.is-active {
+      display: flex;
+    }
+    .deck-shell.is-overview .slide {
+      display: flex;
+      border-bottom: var(--section-rule);
+      padding-bottom: var(--space-2xl);
+      margin-bottom: var(--space-lg);
+    }
+    @keyframes slideEnter {
+      from { opacity: 0; transform: translateY(8px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Slide Header Block */
+    .slide-head {
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-xs);
+    }
+    .dossier-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: var(--space-sm);
+      border-bottom: var(--section-rule);
+      padding-bottom: var(--space-xs);
+      margin-bottom: var(--space-xs);
+      flex-wrap: wrap;
+    }
+    .dossier-bar-left {
+      display: flex;
+      align-items: center;
+      gap: var(--space-sm);
+      flex-wrap: wrap;
+    }
+    .dossier-meta {
+      font-family: var(--font-label);
+      font-size: var(--label-size);
+      color: var(--on-surface-variant);
+    }
+    .slide-title {
+      font-family: var(--font-headline);
+      font-weight: 700;
+      font-size: var(--display-size);
+      letter-spacing: var(--heading-tracking);
+      line-height: 1.15;
+      color: var(--on-surface);
+      margin: 0;
+    }
+    .slide-standfirst {
+      font-family: var(--font-body);
+      font-weight: 600;
+      font-size: var(--subhead-size);
+      color: var(--secondary);
+      margin: 0;
+      max-width: 72ch;
+    }
+
+    /* Grid & Cards */
+    .grid-3 {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: var(--space-lg);
+    }
+    .grid-2-asym {
+      display: grid;
+      grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr);
+      gap: var(--space-lg);
+      align-items: start;
+    }
+    .grid-2-asym-right {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1.2fr);
+      gap: var(--space-lg);
+      align-items: start;
+    }
+    .grid-2-equal {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: var(--space-lg);
+    }
+    .card-wrapper {
+      container-type: inline-size;
+    }
+
+    .figure-card {
+      background: var(--surface-container-low);
+      border: var(--card-border);
+      border-radius: var(--rounded-lg);
+      padding: var(--space-lg);
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-sm);
+      min-width: 0;
+    }
+    .figure-card.is-focal {
+      border-top: 3px solid var(--secondary);
+    }
+    .figure-card.is-alert {
+      border-top: 3px solid var(--error);
+    }
+    .figure-card.is-gold {
+      border-top: 3px solid var(--primary-container);
+    }
+
+    .card-eyebrow {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: var(--space-sm);
+    }
+    .index-num {
+      font-family: var(--font-label);
+      font-weight: 600;
+      font-size: var(--label-size);
+      color: var(--secondary);
+      background: var(--surface-container);
+      padding: 0.15rem 0.4rem;
+      border-radius: var(--badge-radius);
+    }
+    .kpi-label {
+      font-size: 0.875rem;
+      font-weight: 600;
+      color: var(--on-surface-variant);
+    }
+    .kpi-value-row {
+      display: flex;
+      align-items: baseline;
+      gap: var(--space-sm);
+      flex-wrap: wrap;
+    }
+    .kpi-value {
+      font-family: var(--font-headline);
+      font-weight: 700;
+      font-size: clamp(2rem, 1.5rem + 1.8vw, 2.85rem);
+      line-height: 1.05;
+      color: var(--on-surface);
+      font-variant-numeric: lining-nums tabular-nums;
+    }
+    .kpi-unit {
+      font-family: var(--font-label);
+      font-size: 0.875rem;
+      color: var(--on-surface-variant);
+    }
+    .kpi-rate-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: var(--space-xs);
+      font-family: var(--font-label);
+      font-size: 0.8125rem;
+      font-weight: 600;
+      padding: 0.25rem 0.55rem;
+      border-radius: var(--rounded);
+      width: fit-content;
+    }
+    .rate-high {
+      background: var(--error-soft);
+      color: var(--error);
+    }
+    .rate-warn {
+      background: var(--tertiary-soft);
+      color: var(--tertiary);
+    }
+    .rate-info {
+      background: var(--secondary-soft);
+      color: var(--secondary);
+    }
+    .rate-ok {
+      background: var(--positive-soft);
+      color: var(--positive);
+    }
+
+    /* Progress split bar inside KPI cards */
+    .split-meter {
+      height: 10px;
+      width: 100%;
+      background: var(--surface-container-high);
+      border-radius: var(--badge-radius);
+      overflow: hidden;
+      display: flex;
+      margin-top: var(--space-xs);
+    }
+    .split-seg-ok {
+      background: var(--data-3);
+      height: 100%;
+    }
+    .split-seg-bad {
+      background: var(--data-4);
+      height: 100%;
+    }
+    .kpi-breakdown {
+      display: flex;
+      justify-content: space-between;
+      gap: var(--space-sm);
+      font-size: 0.82rem;
+      color: var(--on-surface-variant);
+      border-top: 1px solid var(--outline-variant);
+      padding-top: var(--space-sm);
+      margin-top: var(--space-xs);
+      font-variant-numeric: tabular-nums;
+    }
+
+    /* Stone callout / aside band */
+    .aside-box {
+      background: var(--surface-container);
+      border-top: var(--section-rule);
+      padding: var(--space-md) var(--space-lg);
+      border-radius: 0 0 var(--rounded-lg) var(--rounded-lg);
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-xs);
+    }
+    .aside-box.is-highlight {
+      border-top: 3px solid var(--primary-container);
+      background: var(--tertiary-soft);
+    }
+    .aside-title {
+      font-weight: 700;
+      font-size: 0.9375rem;
+      color: var(--on-surface);
+      display: flex;
+      align-items: center;
+      gap: var(--space-sm);
+    }
+    .aside-copy {
+      margin: 0;
+      font-size: 0.9rem;
+      color: var(--on-surface);
+      line-height: 1.55;
+    }
+
+    /* Chart containers */
+    .chart-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: var(--space-sm);
+      flex-wrap: wrap;
+      border-bottom: 1px solid var(--outline-variant);
+      padding-bottom: var(--space-sm);
+    }
+    .chart-title {
+      font-family: var(--font-headline);
+      font-weight: 600;
+      font-size: var(--headline-size);
+      margin: 0;
+      color: var(--on-surface);
+    }
+    .chart-subtitle {
+      font-family: var(--font-label);
+      font-size: var(--label-size);
+      color: var(--on-surface-variant);
+    }
+    .chart-toggle-group {
+      display: inline-flex;
+      gap: var(--space-xs);
+      background: var(--surface-container);
+      padding: var(--space-xs);
+      border-radius: var(--rounded);
+    }
+    .toggle-btn {
+      min-height: 36px;
+      padding: 0.35rem 0.75rem;
+      border: 0;
+      background: transparent;
+      color: var(--on-surface-variant);
+      border-radius: var(--badge-radius);
+      font-size: 0.8125rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background-color var(--dur-micro) var(--ease-out), color var(--dur-micro) var(--ease-out);
+    }
+    .toggle-btn.is-active {
+      background: var(--surface-container-low);
+      color: var(--on-surface);
+      box-shadow: 0 1px 3px rgb(23 24 26 / 0.12);
+    }
+    .chart-canvas-wrap {
+      position: relative;
+      width: 100%;
+      min-height: 340px;
+      height: 360px;
+    }
+
+    /* Interactive Legend / Cause Cards on Slide 2 */
+    .cause-list {
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-sm);
+    }
+    .cause-item {
+      background: var(--surface-container-low);
+      border: var(--card-border);
+      border-radius: var(--rounded);
+      padding: var(--space-sm) var(--space-md);
+      display: grid;
+      grid-template-columns: auto minmax(0, 1fr) auto;
+      gap: var(--space-sm);
+      align-items: center;
+      cursor: pointer;
+      text-align: left;
+      transition: background-color var(--dur-micro) var(--ease-out),
+                  box-shadow var(--dur-micro) var(--ease-out);
+    }
+    .cause-item:hover, .cause-item.is-selected {
+      background: var(--surface-container);
+      box-shadow: inset 3px 0 0 var(--secondary);
+    }
+    .cause-swatch {
+      width: 12px;
+      height: 32px;
+      border-radius: var(--badge-radius);
+    }
+    .cause-name {
+      font-weight: 600;
+      font-size: 0.9375rem;
+      color: var(--on-surface);
+    }
+    .cause-desc {
+      font-size: 0.8125rem;
+      color: var(--on-surface-variant);
+    }
+    .cause-metrics {
+      text-align: right;
+      font-family: var(--font-label);
+      font-variant-numeric: tabular-nums;
+    }
+    .cause-count {
+      font-weight: 700;
+      font-size: 1rem;
+      color: var(--on-surface);
+    }
+    .cause-pct {
+      font-size: 0.8125rem;
+      color: var(--secondary);
+      font-weight: 600;
+    }
+
+    /* Tables */
+    .table-scroll {
+      width: 100%;
+      overflow-x: auto;
+    }
+    .dossier-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.875rem;
+      background: var(--surface-container-low);
+    }
+    .dossier-table th {
+      text-align: left;
+      font-family: var(--font-label);
+      font-size: 0.75rem;
+      font-weight: 600;
+      color: var(--on-surface-variant);
+      padding: 0.65rem 0.75rem;
+      border-bottom: var(--section-rule);
+      background: var(--surface-container);
+      white-space: nowrap;
+    }
+    .dossier-table th.num, .dossier-table td.num {
+      text-align: right;
+      font-family: var(--font-label);
+      font-variant-numeric: tabular-nums;
+    }
+    .dossier-table td {
+      padding: 0.65rem 0.75rem;
+      border-bottom: 1px solid var(--outline-variant);
+      color: var(--on-surface);
+      vertical-align: middle;
+    }
+    .dossier-table tbody tr {
+      transition: background-color var(--dur-micro) var(--ease-out);
+    }
+    .dossier-table tbody tr.is-clickable {
+      cursor: pointer;
+    }
+    .dossier-table tbody tr.is-clickable:hover {
+      background: var(--surface-container);
+    }
+    .dossier-table tbody tr.is-selected {
+      background: var(--secondary-soft);
+    }
+    .dossier-table tfoot td {
+      font-weight: 700;
+      background: var(--surface-container);
+      border-top: var(--section-rule);
+      border-bottom: 0;
+    }
+
+    /* Risk badges */
+    .risk-tag {
+      display: inline-flex;
+      align-items: center;
+      padding: 0.18rem 0.5rem;
+      border-radius: var(--badge-radius);
+      font-size: 0.75rem;
+      font-weight: 600;
+      white-space: nowrap;
+    }
+    .risk-critical {
+      background: var(--error);
+      color: var(--on-error);
+    }
+    .risk-high {
+      background: var(--error-soft);
+      color: var(--error);
+    }
+    .risk-med {
+      background: var(--tertiary-soft);
+      color: var(--tertiary);
+    }
+    .risk-low {
+      background: var(--secondary-soft);
+      color: var(--secondary);
+    }
+    .risk-zero {
+      background: var(--positive-soft);
+      color: var(--positive);
+    }
+
+    /* Filter Bar (Slide 4 & Slide 6) */
+    .filter-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: var(--space-sm);
+      flex-wrap: wrap;
+    }
+    .filter-pills {
+      display: flex;
+      align-items: center;
+      gap: var(--space-xs);
+      flex-wrap: wrap;
+    }
+    .filter-btn {
+      min-height: 40px;
+      padding: 0.35rem 0.85rem;
+      border: var(--card-border);
+      background: var(--surface-container-low);
+      color: var(--on-surface-variant);
+      border-radius: var(--rounded);
+      font-size: 0.84rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background-color var(--dur-micro) var(--ease-out), color var(--dur-micro) var(--ease-out);
+    }
+    .filter-btn:hover {
+      background: var(--surface-container);
+      color: var(--on-surface);
+    }
+    .filter-btn.is-active {
+      background: var(--secondary);
+      color: var(--on-primary);
+    }
+
+    /* Detail inspector box on Slide 4 */
+    .inspector-box {
+      background: var(--surface-container-low);
+      border: var(--card-border);
+      border-top: 3px solid var(--error);
+      border-radius: var(--rounded-lg);
+      padding: var(--space-lg);
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-md);
+    }
+    .inspector-meta-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: var(--space-sm);
+      background: var(--surface-container);
+      padding: var(--space-md);
+      border-radius: var(--rounded);
+    }
+    .meta-cell-label {
+      font-family: var(--font-label);
+      font-size: 0.72rem;
+      color: var(--on-surface-variant);
+    }
+    .meta-cell-val {
+      font-weight: 700;
+      font-size: 0.95rem;
+      color: var(--on-surface);
+      font-variant-numeric: tabular-nums;
+    }
+
+    /* Strategy cards on Slide 5 */
+    .strategy-card {
+      background: var(--surface-container-low);
+      border: var(--card-border);
+      border-radius: var(--rounded-lg);
+      padding: var(--space-lg);
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-sm);
+    }
+    .strategy-head {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: var(--space-sm);
+      border-bottom: 1px solid var(--outline-variant);
+      padding-bottom: var(--space-sm);
+    }
+    .strategy-title {
+      font-family: var(--font-headline);
+      font-weight: 700;
+      font-size: 1.15rem;
+      margin: 0;
+      color: var(--on-surface);
+    }
+    .strategy-bullets {
+      margin: 0;
+      padding-left: 1.25rem;
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-xs);
+      font-size: 0.9rem;
+      color: var(--on-surface);
+    }
+    .strategy-target {
+      margin-top: auto;
+      padding-top: var(--space-sm);
+      border-top: 1px dashed var(--outline-variant);
+      font-size: 0.82rem;
+      color: var(--secondary);
+      font-weight: 600;
+    }
+
+    /* Roadmap on Slide 6 */
+    .roadmap-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: var(--space-lg);
+    }
+    .phase-col {
+      background: var(--surface-container-low);
+      border: var(--card-border);
+      border-radius: var(--rounded-lg);
+      padding: var(--space-lg);
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-md);
+    }
+    .phase-col.is-now {
+      border-top: 3px solid var(--error);
+    }
+    .phase-col.is-next {
+      border-top: 3px solid var(--primary-container);
+    }
+    .phase-col.is-scale {
+      border-top: 3px solid var(--positive);
+    }
+    .task-card {
+      background: var(--surface-container);
+      border-left: 3px solid var(--secondary);
+      padding: var(--space-sm) var(--space-md);
+      border-radius: 0 var(--rounded) var(--rounded) 0;
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-xs);
+      transition: opacity var(--dur-micro) var(--ease-out);
+    }
+    .task-card.is-dimmed {
+      opacity: 0.28;
+    }
+    .task-dept {
+      font-family: var(--font-label);
+      font-size: 0.72rem;
+      font-weight: 700;
+      color: var(--secondary);
+    }
+    .task-name {
+      font-weight: 600;
+      font-size: 0.9rem;
+      color: var(--on-surface);
+    }
+    .task-detail {
+      font-size: 0.8125rem;
+      color: var(--on-surface-variant);
+    }
+
+    /* Slide 7: 3D Data Architecture Hierarchy (Isometric Interactive Stack) */
+    .arch-stage {
+      background: var(--surface-container);
+      border: var(--card-border);
+      border-radius: var(--rounded-lg);
+      padding: var(--space-xl) var(--space-lg);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: var(--space-md);
+      perspective: 1100px;
+      min-height: 380px;
+    }
+    .iso-stack {
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-md);
+      width: 100%;
+      max-width: 520px;
+    }
+    .iso-layer {
+      background: var(--surface-container-low);
+      border: 1.5px solid var(--outline-variant);
+      border-left: 5px solid var(--secondary);
+      border-radius: var(--rounded-lg);
+      padding: var(--space-md) var(--space-lg);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: var(--space-md);
+      transform: rotateX(10deg) translateZ(0);
+      box-shadow: var(--shadow-layer-1);
+      transition: transform var(--dur-short) var(--ease-out),
+                  box-shadow var(--dur-short) var(--ease-out),
+                  border-color var(--dur-micro) var(--ease-out);
+      text-align: left;
+      width: 100%;
+    }
+    .iso-layer:hover {
+      transform: rotateX(4deg) translateY(-4px);
+      box-shadow: var(--shadow-layer-2);
+    }
+    .iso-layer.is-selected {
+      border-color: var(--secondary);
+      border-left-width: 7px;
+      background: var(--surface-container-low);
+      transform: rotateX(0deg) translateY(-4px) scale(1.02);
+      box-shadow: var(--shadow-layer-2);
+    }
+    .iso-layer[data-tier="l1"] { border-left-color: var(--data-1); }
+    .iso-layer[data-tier="l2"] { border-left-color: var(--data-2); }
+    .iso-layer[data-tier="l3"] { border-left-color: var(--data-4); }
+
+    .iso-tier-tag {
+      font-family: var(--font-label);
+      font-size: 0.72rem;
+      font-weight: 700;
+      color: var(--on-surface-variant);
+    }
+    .iso-tier-title {
+      font-family: var(--font-headline);
+      font-weight: 700;
+      font-size: 1.125rem;
+      color: var(--on-surface);
+    }
+    .iso-tier-num {
+      font-family: var(--font-headline);
+      font-weight: 700;
+      font-size: 1.75rem;
+      color: var(--on-surface);
+      font-variant-numeric: tabular-nums;
+      text-align: right;
+    }
+    .iso-connector {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: var(--space-xs);
+      font-family: var(--font-label);
+      font-size: 0.72rem;
+      color: var(--on-surface-variant);
+    }
+
+    /* Footer Controls */
+    .deck-controls {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: var(--space-md);
+      border-top: var(--section-rule);
+      padding-top: var(--space-md);
+      flex-wrap: wrap;
+    }
+    .nav-btn-group {
+      display: flex;
+      align-items: center;
+      gap: var(--space-sm);
+    }
+    .nav-btn {
+      min-height: 44px;
+      padding: 0 var(--space-lg);
+      border-radius: var(--rounded);
+      font-weight: 600;
+      font-size: 0.9rem;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: var(--space-xs);
+      transition: background-color var(--dur-micro) var(--ease-out), opacity var(--dur-micro) var(--ease-out);
+    }
+    .nav-btn-prev {
+      background: var(--surface-container-low);
+      border: 1px solid var(--border-secondary);
+      color: var(--on-surface);
+    }
+    .nav-btn-prev:hover:not(:disabled) {
+      background: var(--surface-container);
+    }
+    .nav-btn-next {
+      background: var(--primary);
+      border: 1px solid var(--primary);
+      color: var(--on-primary);
+    }
+    .nav-btn-next:hover:not(:disabled) {
+      background: var(--secondary);
+      border-color: var(--secondary);
+    }
+    .nav-btn:disabled {
+      opacity: 0.4;
+      cursor: not-allowed;
+    }
+    .deck-progress {
+      display: flex;
+      align-items: center;
+      gap: var(--space-md);
+      flex-wrap: wrap;
+    }
+    .progress-counter {
+      font-family: var(--font-label);
+      font-size: 0.875rem;
+      font-weight: 600;
+      color: var(--on-surface);
+      font-variant-numeric: tabular-nums;
+    }
+    .progress-dots {
+      display: flex;
+      align-items: center;
+      gap: var(--space-xs);
+    }
+    .progress-dot {
+      width: 28px;
+      height: 8px;
+      border-radius: var(--badge-radius);
+      border: 0;
+      background: var(--surface-container-high);
+      cursor: pointer;
+      padding: 0;
+      transition: background-color var(--dur-micro) var(--ease-out), width var(--dur-micro) var(--ease-out);
+    }
+    .progress-dot.is-active {
+      width: 40px;
+      background: var(--primary-container);
+    }
+    .kbd-hint {
+      font-family: var(--font-label);
+      font-size: 0.75rem;
+      color: var(--on-surface-variant);
+    }
+
+    /* Container queries */
+    @container (max-width: 340px) {
+      .kpi-breakdown {
+        flex-direction: column;
+        gap: var(--space-xs);
+      }
+    }
+
+    /* Responsive breakpoints */
+    @media (max-width: 960px) {
+      .grid-3, .roadmap-grid {
+        grid-template-columns: minmax(0, 1fr);
+      }
+      .grid-2-asym, .grid-2-asym-right, .grid-2-equal {
+        grid-template-columns: minmax(0, 1fr);
+      }
+    }
+
+    @media (max-width: 640px) {
+      .deck-shell {
+        padding: var(--space-sm) var(--space-md);
+      }
+      .slide-tab {
+        padding: var(--space-xs) var(--space-sm);
+        font-size: 0.78rem;
+      }
+      .chart-canvas-wrap {
+        min-height: 280px;
+        height: 300px;
+      }
+      .kbd-hint {
+        display: none;
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        transition-duration: 0.01ms !important;
+        scroll-behavior: auto !important;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="deck-shell" id="deckShell">
+    <!-- Top Dossier Masthead (Static) -->
+    <header class="deck-masthead">
+      <div class="masthead-brand">
+        <span class="dossier-pill">QC DOSSIER · V5</span>
+        <span class="masthead-title">2026 化妝品製造 QC 異常與重工深度分析報告</span>
+      </div>
+      <div class="masthead-meta">
+        <span>統計範疇：2026 現行最新配方（截至 2026/11/18）</span>
+        <span aria-hidden="true">·</span>
+        <span>資料口徑：v5 清洗校核版</span>
+      </div>
+    </header>
+
+    <!-- Slide Jump Tabs + Overview Toggle -->
+    <nav class="slide-rail" aria-label="簡報頁面導覽">
+      <div class="slide-tabs" id="slideTabs">
+        <button type="button" class="slide-tab is-active" onclick="goToSlide(0)">
+          <span class="tab-num">01</span><span>核心 KPI 總覽</span>
+        </button>
+        <button type="button" class="slide-tab" onclick="goToSlide(1)">
+          <span class="tab-num">02</span><span>109 筆處置分布</span>
+        </button>
+        <button type="button" class="slide-tab" onclick="goToSlide(2)">
+          <span class="tab-num">03</span><span>六大劑型交叉分析</span>
+        </button>
+        <button type="button" class="slide-tab" onclick="goToSlide(3)">
+          <span class="tab-num">04</span><span>P1–P10 高風險品項</span>
+        </button>
+        <button type="button" class="slide-tab" onclick="goToSlide(4)">
+          <span class="tab-num">05</span><span>根因與改善策略</span>
+        </button>
+        <button type="button" class="slide-tab" onclick="goToSlide(5)">
+          <span class="tab-num">06</span><span>跨部門 SOP 路徑</span>
+        </button>
+        <button type="button" class="slide-tab" onclick="goToSlide(6)">
+          <span class="tab-num">07</span><span>3D 資料架構附錄</span>
+        </button>
+      </div>
+      <button type="button" class="view-mode-btn" id="overviewToggleBtn" onclick="toggleOverviewMode()">
+        <i data-lucide="layout-grid" aria-hidden="true" style="width:16px;height:16px;"></i>
+        <span id="overviewToggleLabel">展開全頁總覽</span>
+      </button>
+    </nav>
+
+    <!-- Slide Stage -->
+    <main class="slide-stage" id="slideStage">
+
+      <!-- SLIDE 1: Executive KPI Summary -->
+      <section class="slide is-active" id="slide-0" aria-labelledby="s1-title">
+        <div class="slide-head">
+          <div class="dossier-bar">
+            <div class="dossier-bar-left">
+              <span class="dossier-pill">SLIDE 01 / 07 · EXECUTIVE SUMMARY</span>
+              <span class="dossier-meta">全廠品管基準與核心異常率</span>
+            </div>
+            <span class="dossier-meta">資料口徑：已排除 17 筆雙機台／常規複測干擾列</span>
+          </div>
+          <h1 class="slide-title" id="s1-title">全廠生產批次一次過關率 74.8%，但近四成配方曾觸發異常處置</h1>
+          <p class="slide-standfirst">2026 年現行最新有效配方共 102 項、獨立生產 314 批，產生 420 筆有效 QC 檢驗紀錄；品項異常率達 37.3%，顯示改善重心應鎖定重複重工與線上補料之高風險 SKU。</p>
+        </div>
+
+        <div class="grid-3">
+          <!-- KPI 1: Products -->
+          <div class="card-wrapper">
+            <article class="figure-card is-alert">
+              <div class="card-eyebrow">
+                <span class="kpi-label">評估總配方／品項數 (SKU)</span>
+                <span class="index-num">01</span>
+              </div>
+              <div class="kpi-value-row">
+                <span class="kpi-value">102</span>
+                <span class="kpi-unit">項現行最新配方</span>
+              </div>
+              <span class="kpi-rate-badge rate-high">品項異常率 37.3%（38 / 102 項）</span>
+              <div class="split-meter" role="img" aria-label="64 項正常配方與 38 項異常配方占比">
+                <div class="split-seg-ok" style="width: 62.75%;"></div>
+                <div class="split-seg-bad" style="width: 37.25%;"></div>
+              </div>
+              <div class="kpi-breakdown">
+                <span>正常無異常：<strong>64 項</strong>（62.7%）</span>
+                <span>發生異常：<strong>38 項</strong>（37.3%）</span>
+              </div>
+            </article>
+          </div>
+
+          <!-- KPI 2: QC Rows -->
+          <div class="card-wrapper">
+            <article class="figure-card is-gold">
+              <div class="card-eyebrow">
+                <span class="kpi-label">有效 QC 檢測紀錄總筆數</span>
+                <span class="index-num">02</span>
+              </div>
+              <div class="kpi-value-row">
+                <span class="kpi-value">420</span>
+                <span class="kpi-unit">筆有效紀錄列</span>
+              </div>
+              <span class="kpi-rate-badge rate-warn">紀錄異常處置率 26.0%（109 / 420 筆）</span>
+              <div class="split-meter" role="img" aria-label="311 筆正常紀錄與 109 筆異常處置紀錄占比">
+                <div class="split-seg-ok" style="width: 74.05%;"></div>
+                <div class="split-seg-bad" style="width: 25.95%;"></div>
+              </div>
+              <div class="kpi-breakdown">
+                <span>正常檢驗列：<strong>311 筆</strong>（74.0%）</span>
+                <span>異常處置列：<strong>109 筆</strong>（26.0%）</span>
+              </div>
+            </article>
+          </div>
+
+          <!-- KPI 3: Independent Batches -->
+          <div class="card-wrapper">
+            <article class="figure-card is-focal">
+              <div class="card-eyebrow">
+                <span class="kpi-label">獨立生產總批數（去重歸併）</span>
+                <span class="index-num">03</span>
+              </div>
+              <div class="kpi-value-row">
+                <span class="kpi-value">314</span>
+                <span class="kpi-unit">批獨立生產批號</span>
+              </div>
+              <span class="kpi-rate-badge rate-info">批次異常率 25.2%（79 / 314 批）</span>
+              <div class="split-meter" role="img" aria-label="235 批一次過關與 79 批異常重工特採占比">
+                <div class="split-seg-ok" style="width: 74.84%;"></div>
+                <div class="split-seg-bad" style="width: 25.16%;"></div>
+              </div>
+              <div class="kpi-breakdown">
+                <span>一次過關：<strong>235 批</strong>（74.8%）</span>
+                <span>重工／特採：<strong>79 批</strong>（25.2%）</span>
+              </div>
+            </article>
+          </div>
+        </div>
+
+        <div class="grid-2-equal">
+          <div class="aside-box is-highlight">
+            <div class="aside-title">
+              <i data-lucide="shield-check" aria-hidden="true" style="width:18px;height:18px;"></i>
+              <span>v5 口徑校核關鍵修正：還原真實品質負荷</span>
+            </div>
+            <p class="aside-copy">v5 版本依據「品項代碼＋批號」歸併獨立生產批數為 <strong>314 批</strong>，並明確排除 <strong>17 筆</strong>僅屬雙黏度計（Brookfield / Atago）或超時常規複測之紀錄列，同時將過去漏計的線上補加原料（.+X% 原料代碼）與加熱再均質納入 <strong>109 筆</strong>異常處置統計。</p>
+          </div>
+          <div class="aside-box">
+            <div class="aside-title">
+              <i data-lucide="target" aria-hidden="true" style="width:18px;height:18px;"></i>
+              <span>核心管理洞見：異常高度集中於少數配方與處置動作</span>
+            </div>
+            <p class="aside-copy">平均每批異常發生 <strong>1.38 次</strong>異常處置事件（109 筆／79 批），代表多數異常批需要歷經「多次補料 → 重攪 → 覆驗」的多重循環。只要聚焦 38 項異常配方中的前 10 大預警品項，即可大幅釋放品管與產線重工工時。</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- SLIDE 2: 109 Exception Handling Types Distribution -->
+      <section class="slide" id="slide-1" aria-labelledby="s2-title">
+        <div class="slide-head">
+          <div class="dossier-bar">
+            <div class="dossier-bar-left">
+              <span class="dossier-pill">SLIDE 02 / 07 · EXCEPTION TYPES</span>
+              <span class="dossier-meta">109 筆異常處置類型結構分布</span>
+            </div>
+            <span class="dossier-meta">互動提示：滑鼠懸停圖表或點擊右側類別可鎖定檢視明細</span>
+          </div>
+          <h1 class="slide-title" id="s2-title">補料調整與重攪再均質合計達 75.23%，主導全廠重工工時</h1>
+          <p class="slide-standfirst">在 109 筆異常處置事件中，線上補加酸鹼或增稠原料（46 筆）與加熱重攪再均質（36 筆）佔據四分之三；物理過濾與設備漏油報廢雖僅 5 筆，卻造成最高單批損失。</p>
+        </div>
+
+        <div class="grid-2-asym">
+          <div class="figure-card">
+            <div class="chart-header">
+              <div>
+                <h2 class="chart-title">109 筆異常處置類型占比</h2>
+                <span class="chart-subtitle">TOTAL = 109 EVENTS · HOVER FOR EXACT COUNT &amp; %</span>
+              </div>
+              <div class="chart-toggle-group" role="group" aria-label="切換圖表顯示模式">
+                <button type="button" class="toggle-btn is-active" id="s2-btn-doughnut" onclick="setSlide2ChartMode('doughnut')">環狀圖</button>
+                <button type="button" class="toggle-btn" id="s2-btn-bar" onclick="setSlide2ChartMode('bar')">橫向排行圖</button>
+              </div>
+            </div>
+            <div class="chart-canvas-wrap">
+              <canvas id="exceptionChart" aria-label="109 筆異常處置類型分布圖表"></canvas>
+            </div>
+          </div>
+
+          <div style="display:flex;flex-direction:column;gap:var(--space-md);">
+            <div class="cause-list" id="causeList">
+              <!-- Populated by JS -->
+            </div>
+
+            <div class="aside-box is-highlight">
+              <div class="aside-title">
+                <i data-lucide="zap" aria-hidden="true" style="width:18px;height:18px;"></i>
+                <span>首要改善突破點（75.23% 集中效應）</span>
+              </div>
+              <p class="aside-copy"><strong>補料（46 筆，42.20%）＋ 重攪（36 筆，33.03%）合計高達 75.23%（82 / 109 筆）</strong>，為全廠品質改善的首要突破點。將「事後補救」前移至研發基準投料與標準均質參數，預期可直接消除逾七成重複 QC 負荷。</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- SLIDE 3: Cross-Category Dosage Form Analysis -->
+      <section class="slide" id="slide-2" aria-labelledby="s3-title">
+        <div class="slide-head">
+          <div class="dossier-bar">
+            <div class="dossier-bar-left">
+              <span class="dossier-pill">SLIDE 03 / 07 · DOSAGE FORMS</span>
+              <span class="dossier-meta">六大劑型 QC 異常率與負荷交叉分析</span>
+            </div>
+            <span class="dossier-meta">劑型範疇：BCL / BCR / BGE / BLO / BMI / BMK</span>
+          </div>
+          <h1 class="slide-title" id="s3-title">精華液類 (BLO) 異常絕對量最高，乳液類 (BMI) 異常率居主劑型之冠</h1>
+          <p class="slide-standfirst">BLO 貢獻全廠近半數異常紀錄（53 筆，24.88%），主要源自高濃度酸類 pH 調節；BMI 異常率高達 37.08%（33 / 89 筆），凸顯乳化系統穩定度與均質溫控亟需強化。</p>
+        </div>
+
+        <div class="grid-2-asym-right">
+          <div class="figure-card">
+            <div class="chart-header">
+              <div>
+                <h2 class="chart-title">各劑型異常表現比較</h2>
+                <span class="chart-subtitle">6 DOSAGE FORMS · 420 QC ROWS</span>
+              </div>
+              <div class="chart-toggle-group" role="group" aria-label="切換劑型圖表指標">
+                <button type="button" class="toggle-btn is-active" id="s3-btn-rate" onclick="setSlide3ChartMode('rate')">異常率 (%)</button>
+                <button type="button" class="toggle-btn" id="s3-btn-count" onclick="setSlide3ChartMode('count')">紀錄筆數結構</button>
+              </div>
+            </div>
+            <div class="chart-canvas-wrap">
+              <canvas id="dosageChart" aria-label="各劑型 QC 異常比較圖表"></canvas>
+            </div>
+          </div>
+
+          <div class="figure-card">
+            <div class="chart-header">
+              <div>
+                <h2 class="chart-title">六大劑型 QC 明細與風險分級</h2>
+                <span class="chart-subtitle">BCL · BCR · BGE · BLO · BMI · BMK</span>
+              </div>
+            </div>
+            <div class="table-scroll">
+              <table class="dossier-table">
+                <thead>
+                  <tr>
+                    <th>劑型代碼</th>
+                    <th>劑型類別</th>
+                    <th class="num">QC 總筆數</th>
+                    <th class="num">異常筆數</th>
+                    <th class="num">異常率</th>
+                    <th>風險等級</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td><strong>BGE</strong></td>
+                    <td>Gel 膠類</td>
+                    <td class="num">6</td>
+                    <td class="num">3</td>
+                    <td class="num"><strong>50.00%</strong></td>
+                    <td><span class="risk-tag risk-high">小樣本高波動</span></td>
+                  </tr>
+                  <tr>
+                    <td><strong>BMI</strong></td>
+                    <td>Milk 乳液類</td>
+                    <td class="num">89</td>
+                    <td class="num">33</td>
+                    <td class="num"><strong>37.08%</strong></td>
+                    <td><span class="risk-tag risk-critical">高風險主劑型</span></td>
+                  </tr>
+                  <tr>
+                    <td><strong>BMK</strong></td>
+                    <td>Mask 面膜類</td>
+                    <td class="num">52</td>
+                    <td class="num">13</td>
+                    <td class="num"><strong>25.00%</strong></td>
+                    <td><span class="risk-tag risk-med">中度警戒（含報廢）</span></td>
+                  </tr>
+                  <tr>
+                    <td><strong>BLO</strong></td>
+                    <td>Lotion 精華液類</td>
+                    <td class="num">213</td>
+                    <td class="num">53</td>
+                    <td class="num"><strong>24.88%</strong></td>
+                    <td><span class="risk-tag risk-med">高總量異常核心</span></td>
+                  </tr>
+                  <tr>
+                    <td><strong>BCL</strong></td>
+                    <td>Clean 清潔類</td>
+                    <td class="num">55</td>
+                    <td class="num">7</td>
+                    <td class="num"><strong>12.73%</strong></td>
+                    <td><span class="risk-tag risk-low">局部重攪控管</span></td>
+                  </tr>
+                  <tr>
+                    <td><strong>BCR</strong></td>
+                    <td>Cream 霜類</td>
+                    <td class="num">5</td>
+                    <td class="num">0</td>
+                    <td class="num"><strong>0.00%</strong></td>
+                    <td><span class="risk-tag risk-zero">穩定達標</span></td>
+                  </tr>
+                </tbody>
+                <tfoot>
+                  <tr>
+                    <td>合計</td>
+                    <td>全廠六大劑型</td>
+                    <td class="num">420</td>
+                    <td class="num">109</td>
+                    <td class="num">25.95%</td>
+                    <td>整體基準</td>
+                  </tr>
+                </tfoot>
+              </table>
+            </div>
+            <div class="aside-box" style="margin-top:var(--space-sm);">
+              <p class="aside-copy"><strong>劑型結構重點：</strong>BLO（213 筆）與 BMI（89 筆）合計佔全廠檢測量 <strong>71.9%</strong>，卻集中了全廠 <strong>78.9%</strong> 的異常處置事件（86 / 109 筆）。</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- SLIDE 4: TOP High-Risk Warning Products (P1 - P10) -->
+      <section class="slide" id="slide-3" aria-labelledby="s4-title">
+        <div class="slide-head">
+          <div class="dossier-bar">
+            <div class="dossier-bar-left">
+              <span class="dossier-pill">SLIDE 04 / 07 · HIGH-RISK WATCHLIST</span>
+              <span class="dossier-meta">P1 – P10 重點預警品項清單與個案診斷</span>
+            </div>
+            <span class="dossier-meta">互動操作：依風險屬性篩選並點選品項列查看稽核詳情</span>
+          </div>
+          <h1 class="slide-title" id="s4-title">前 10 大預警品項包辦重大報廢事故與高頻重工循環</h1>
+          <p class="slide-standfirst">包含 BMK0029 機台漏油報廢、BMI0007 豆花狀乳化崩解報廢，以及 BMI0054（12/19）、BLO0145（5/6）、BLO0006、BLO0197 等高重複重攪與酸鹼調料常客。</p>
+        </div>
+
+        <div class="filter-row">
+          <div class="filter-pills" role="group" aria-label="依風險類別篩選 P1 至 P10 品項">
+            <button type="button" class="filter-btn is-active" onclick="filterPriority('all', this)">全部預警 (P1–P10)</button>
+            <button type="button" class="filter-btn" onclick="filterPriority('scrap', this)">重大報廢級</button>
+            <button type="button" class="filter-btn" onclick="filterPriority('remix', this)">高頻重攪／回溫均質</button>
+            <button type="button" class="filter-btn" onclick="filterPriority('ph', this)">酸鹼補料／pH 偏離</button>
+          </div>
+          <span class="dossier-meta" id="p10CountLabel">顯示 10 / 10 項高風險品項</span>
+        </div>
+
+        <div class="grid-2-asym">
+          <div class="figure-card" style="padding:var(--space-md);">
+            <div class="table-scroll">
+              <table class="dossier-table">
+                <thead>
+                  <tr>
+                    <th>順位</th>
+                    <th>品項代碼</th>
+                    <th>品名（劑型／版本）</th>
+                    <th>核心異常特徵</th>
+                    <th>風險分級</th>
+                  </tr>
+                </thead>
+                <tbody id="p10TableBody">
+                  <!-- Populated by JS -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <aside class="inspector-box" id="p10Inspector" aria-live="polite">
+            <!-- Populated by JS -->
+          </aside>
+        </div>
+      </section>
+
+      <!-- SLIDE 5: Root Cause & Strategic Recommendations -->
+      <section class="slide" id="slide-4" aria-labelledby="s5-title">
+        <div class="slide-head">
+          <div class="dossier-bar">
+            <div class="dossier-bar-left">
+              <span class="dossier-pill">SLIDE 05 / 07 · ROOT CAUSE &amp; STRATEGY</span>
+              <span class="dossier-meta">系統性根因診斷與四大戰略對策</span>
+            </div>
+            <span class="dossier-meta">對應處置：補料 42.2% · 重攪 33.0% · 特採 20.2% · 過濾/報廢 4.6%</span>
+          </div>
+          <h1 class="slide-title" id="s5-title">從「產線事後補救」轉向「配方預校準、參數鎖定與設備防呆」</h1>
+          <p class="slide-standfirst">針對 109 筆異常背後的四類結構性成因，提出可立即落實於配方設計、製程 SOP、設備點檢與規格文件管理的四大核心改善策略。</p>
+        </div>
+
+        <div class="grid-2-equal">
+          <article class="strategy-card">
+            <div class="strategy-head">
+              <div>
+                <span class="index-num">策略 01 · 針對 42.20% 補料異常</span>
+                <h2 class="strategy-title">優化 pH 調節劑初始投料規則與加料順序</h2>
+              </div>
+              <span class="risk-tag risk-high">46 筆異常根因</span>
+            </div>
+            <ul class="strategy-bullets">
+              <li><strong>痛點盤點：</strong>杏仁酸精華（BLO0197、BLO0003、BLO0006、BLO0005、BLO0126）與洗髮精（BCL0036）反覆因初驗 pH 過低，需在產線補加 0.04%–2.58% <strong>COT0008XX00</strong>。</li>
+              <li><strong>工程對策：</strong>依據近 6 批實際補料均值回推修訂 BOM 基礎鹼劑比例，建立「主反應後預留 5% 微調窗口＋分階段緩衝加料」SOP，避免單次過調或反覆取樣。</li>
+            </ul>
+            <div class="strategy-target">目標品項：BLO0197、BLO0003、BLO0006、BLO0005、BLO0126</div>
+          </article>
+
+          <article class="strategy-card">
+            <div class="strategy-head">
+              <div>
+                <span class="index-num">策略 02 · 針對 33.03% 重攪均質異常</span>
+                <h2 class="strategy-title">鎖定乳化均質轉速、時間與冷卻溫控規範</h2>
+              </div>
+              <span class="risk-tag risk-med">36 筆異常根因</span>
+            </div>
+            <ul class="strategy-bullets">
+              <li><strong>痛點盤點：</strong>BMI0054（12/19）、BMI0055、BMI0040 與 BLO0145（5/6）大量出現黏度不足、外觀微霧或分層，須事後「加熱至 60°C／80°C 重新均質攪拌」甚至導致乳化崩解（BMI0007 豆花狀）。</li>
+              <li><strong>工程對策：</strong>明確界定增稠膠體預泡水合時間、均質機轉速（rpm）與降溫終點溫度，禁止未達均質標準溫度即提早停機。</li>
+            </ul>
+            <div class="strategy-target">目標品項：BMI0054、BLO0145、BMI0055、BMI0040、BMI0007</div>
+          </article>
+
+          <article class="strategy-card">
+            <div class="strategy-head">
+              <div>
+                <span class="index-num">策略 03 · 針對 4.59% 顆粒與設備污染</span>
+                <h2 class="strategy-title">建立設備油封預防性保養 (PM) 與前段過濾防線</h2>
+              </div>
+              <span class="risk-tag risk-critical">重大報廢防堵</span>
+            </div>
+            <ul class="strategy-bullets">
+              <li><strong>痛點盤點：</strong>BMK0029（BFA043B02）因機台漏油造成 250 kg 半成品整鍋報廢；BMI0007 與 BLO0197 出現黑色顆粒與析出物，須仰賴濾袋二次補救過濾。</li>
+              <li><strong>工程對策：</strong>導入乳化鍋與充填機「機械軸封／油封開機前點檢卡」，將高風險易析出配方（白藜蘆醇、A醇＋杏仁酸）設定為出料前標準過濾網目強制關卡。</li>
+            </ul>
+            <div class="strategy-target">目標品項：BMK0029、BMI0007、BLO0197</div>
+          </article>
+
+          <article class="strategy-card">
+            <div class="strategy-head">
+              <div>
+                <span class="index-num">策略 04 · 針對 20.18% 特採與數據疑義</span>
+                <h2 class="strategy-title">覆核臨界規格寬容度與雙機台標準化紀錄</h2>
+              </div>
+              <span class="risk-tag risk-low">22 筆特採＋17 筆待核</span>
+            </div>
+            <ul class="strategy-bullets">
+              <li><strong>痛點盤點：</strong>多項規格書存在雙重矛盾（如 BLO0006 同時標示 3.8–4.2 與 3.8±0.2），且存在 17 批實測超標卻直接判 OK 的待釐清批次；另有單一黏度欄掩蓋雙機台數值問題。</li>
+              <li><strong>工程對策：</strong>全面校對 38 項異常與 17 批邊緣品項之有效規格上限，將 Brook／Atago 雙機台分欄紀錄，並嚴禁報廢後以同批號覆蓋寫入。</li>
+            </ul>
+            <div class="strategy-target">目標範圍：BLO0170、BLO0195、BLO0208、BLO0213、BMK0029</div>
+          </article>
+        </div>
+      </section>
+
+      <!-- SLIDE 6: SOP Optimization & Cross-Departmental Roadmap -->
+      <section class="slide" id="slide-5" aria-labelledby="s6-title">
+        <div class="slide-head">
+          <div class="dossier-bar">
+            <div class="dossier-bar-left">
+              <span class="dossier-pill">SLIDE 06 / 07 · QUALITY ROADMAP</span>
+              <span class="dossier-meta">SOP 優化與跨部門品質改善執行路徑</span>
+            </div>
+            <span class="dossier-meta">互動篩選：點選權責部門突顯各階段對應交付項目</span>
+          </div>
+          <h1 class="slide-title" id="s6-title">三階段跨部門品質改善藍圖（2026 Q4 – 2027 Q2）</h1>
+          <p class="slide-standfirst">串聯研發（R&amp;D）、製造（Production）、品管（QC）與設備工務（Engineering）四大部門，分階段達成重大報廢歸零與重工率減半目標。</p>
+        </div>
+
+        <div class="filter-row">
+          <div class="filter-pills" role="group" aria-label="篩選權責部門">
+            <button type="button" class="filter-btn is-active" onclick="filterRoadmapDept('all', this)">全部跨部門任務</button>
+            <button type="button" class="filter-btn" onclick="filterRoadmapDept('RD', this)">研發配方組 (R&amp;D)</button>
+            <button type="button" class="filter-btn" onclick="filterRoadmapDept('PROD', this)">製造生產部</button>
+            <button type="button" class="filter-btn" onclick="filterRoadmapDept('QC', this)">品管檢驗組 (QC)</button>
+            <button type="button" class="filter-btn" onclick="filterRoadmapDept('ENG', this)">設備工務組</button>
+          </div>
+          <span class="kpi-rate-badge rate-ok">階段目標：批次異常率 25.2% → &lt;12.0%</span>
+        </div>
+
+        <div class="roadmap-grid" id="roadmapGrid">
+          <!-- Phase 1 -->
+          <div class="phase-col is-now">
+            <div style="display:flex;justify-content:space-between;align-items:center;">
+              <span class="risk-tag risk-critical">PHASE 1 · 2026 Q4</span>
+              <span class="dossier-meta">立即止血與規格盤點</span>
+            </div>
+            <h2 class="chart-title" style="font-size:1.15rem;">止血防呆與稽核疑義結案</h2>
+            <div class="task-card" data-dept="ENG">
+              <span class="task-dept">設備工務組 · ENG</span>
+              <span class="task-name">攪拌與充填軸封油封強制點檢</span>
+              <span class="task-detail">全面拆檢 BMK0029 涉事機台油封，建立每日開機前防漏檢核簽名制，杜絕漏油報廢重演。</span>
+            </div>
+            <div class="task-card" data-dept="QC">
+              <span class="task-dept">品管檢驗組 · QC</span>
+              <span class="task-name">17 批 pH 超標與同批號報廢疑義裁定</span>
+              <span class="task-detail">釐清 BLO0170/0195/0208/0213 暫行規格有效性，禁止報廢批號（如 BFA043B02）重複沿用。</span>
+            </div>
+            <div class="task-card" data-dept="RD">
+              <span class="task-dept">研發配方組 · R&amp;D</span>
+              <span class="task-name">酸類系列 COT0008XX00 基礎配比校準</span>
+              <span class="task-detail">優先針對 BLO0197、BLO0003、BLO0006 發布修訂版製造單（ECR），上修預設鹼劑用量。</span>
+            </div>
+          </div>
+
+          <!-- Phase 2 -->
+          <div class="phase-col is-next">
+            <div style="display:flex;justify-content:space-between;align-items:center;">
+              <span class="risk-tag risk-med">PHASE 2 · 2027 Q1</span>
+              <span class="dossier-meta">製程 SOP 標準化</span>
+            </div>
+            <h2 class="chart-title" style="font-size:1.15rem;">高危乳液與精華 SOP 鎖定</h2>
+            <div class="task-card" data-dept="PROD">
+              <span class="task-dept">製造生產部 · PROD</span>
+              <span class="task-name">導入標準均質轉速與 60°C/80°C 溫控窗</span>
+              <span class="task-detail">針對 BMI0054、BMI0055、BLO0145 與 BMI0040 鎖定均質時間與出料溫度，消弭事後回溫重攪。</span>
+            </div>
+            <div class="task-card" data-dept="PROD">
+              <span class="task-dept">製造生產部 · PROD</span>
+              <span class="task-name">建立增稠膠體預泡與前段過濾網目 SOP</span>
+              <span class="task-detail">針對 BMI0007 與高析出物配方設定標準濾網規格，防止顆粒與豆花狀異常延後至 QC 才暴露。</span>
+            </div>
+            <div class="task-card" data-dept="QC">
+              <span class="task-dept">品管檢驗組 · QC</span>
+              <span class="task-name">分離雙機台黏度欄位與特採放行門檻</span>
+              <span class="task-detail">將 Brook／Atago 各自規格與實測值獨立建欄，並規定「補料／重攪」必須強制綁定異常代碼。</span>
+            </div>
+          </div>
+
+          <!-- Phase 3 -->
+          <div class="phase-col is-scale">
+            <div style="display:flex;justify-content:space-between;align-items:center;">
+              <span class="risk-tag risk-zero">PHASE 3 · 2027 Q2</span>
+              <span class="dossier-meta">數位治理與預防管控</span>
+            </div>
+            <h2 class="chart-title" style="font-size:1.15rem;">數位化批紀錄與常態追蹤</h2>
+            <div class="task-card" data-dept="QC">
+              <span class="task-dept">品管檢驗組 · QC</span>
+              <span class="task-name">上線標準化電子 QC 紀錄模板（v5 架構）</span>
+              <span class="task-detail">強制檢核「品項代碼＋批號」唯一性、分離 SG 比重與黏度，自動計算各劑型即時一次過關率。</span>
+            </div>
+            <div class="task-card" data-dept="RD">
+              <span class="task-dept">研發配方組 · R&amp;D</span>
+              <span class="task-name">統一全廠配方書單一上下限語法</span>
+              <span class="task-detail">消除「3.8–4.2 vs 3.8±0.2」雙重規格衝突，並對連續 3 批異常配方啟動強制配方健檢機制。</span>
+            </div>
+            <div class="task-card" data-dept="ENG">
+              <span class="task-dept">設備工務組 · ENG</span>
+              <span class="task-name">建立關鍵鍋體均質負載與溫控趨勢預警</span>
+              <span class="task-detail">整合生產批數與設備維修週期，達成「補料＋重攪佔比 &lt;35%、重大污染報廢 0 件」年度目標。</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- SLIDE 7: 3D Data Architecture Hierarchy (Background Reference) -->
+      <section class="slide" id="slide-6" aria-labelledby="s7-title">
+        <div class="slide-head">
+          <div class="dossier-bar">
+            <div class="dossier-bar-left">
+              <span class="dossier-pill">SLIDE 07 / 07 · BACKGROUND REFERENCE</span>
+              <span class="dossier-meta">附錄：v5 三維資料階層架構與清洗邏輯</span>
+            </div>
+            <span class="dossier-meta">互動導覽：點擊左側 3D 階層模型切換檢視各層資料治理規則</span>
+          </div>
+          <h1 class="slide-title" id="s7-title">三維資料階層架構：102 項配方 → 314 批生產 → 420 筆 QC 紀錄</h1>
+          <p class="slide-standfirst">為確保異常率不因「重複覆驗列灌水」或「雙機台測試誤判」而失真，v5 報告建立嚴格的三層聚合口徑，作為全廠所有 KPI 指標的底層事實依據。</p>
+        </div>
+
+        <div class="grid-2-asym">
+          <!-- Interactive 3D Isometric Stacked Layer Explorer -->
+          <div class="arch-stage">
+            <div class="iso-stack" id="isoStack">
+              <button type="button" class="iso-layer is-selected" data-tier="l1" onclick="selectArchTier('l1')">
+                <div>
+                  <div class="iso-tier-tag">LAYER 01 · FORMULATION / SKU TIER</div>
+                  <div class="iso-tier-title">現行有效配方品項層</div>
+                  <div class="cause-desc">64 項正常 · 38 項發生異常（37.3%）</div>
+                </div>
+                <div>
+                  <div class="iso-tier-num">102</div>
+                  <div class="iso-tier-tag" style="text-align:right;">SKUs</div>
+                </div>
+              </button>
+
+              <div class="iso-connector" aria-hidden="true">
+                <i data-lucide="arrow-down" style="width:14px;height:14px;"></i>
+                <span>依「品項代碼＋批號」歸併獨立生產批號（排除 2025 跨年舊批）</span>
+              </div>
+
+              <button type="button" class="iso-layer" data-tier="l2" onclick="selectArchTier('l2')">
+                <div>
+                  <div class="iso-tier-tag">LAYER 02 · INDEPENDENT BATCH TIER</div>
+                  <div class="iso-tier-title">獨立生產批次層</div>
+                  <div class="cause-desc">235 批一次過關 · 79 批異常/重工/特採（25.2%）</div>
+                </div>
+                <div>
+                  <div class="iso-tier-num">314</div>
+                  <div class="iso-tier-tag" style="text-align:right;">BATCHES</div>
+                </div>
+              </button>
+
+              <div class="iso-connector" aria-hidden="true">
+                <i data-lucide="arrow-down" style="width:14px;height:14px;"></i>
+                <span>展開單批全歷程事件（已排除 17 筆雙機台／常規複測干擾列）</span>
+              </div>
+
+              <button type="button" class="iso-layer" data-tier="l3" onclick="selectArchTier('l3')">
+                <div>
+                  <div class="iso-tier-tag">LAYER 03 · QC HANDLING RECORD TIER</div>
+                  <div class="iso-tier-title">有效 QC 檢測與處置紀錄列層</div>
+                  <div class="cause-desc">311 筆正常 · 109 筆異常處置事件（26.0%）</div>
+                </div>
+                <div>
+                  <div class="iso-tier-num">420</div>
+                  <div class="iso-tier-tag" style="text-align:right;">ROWS</div>
+                </div>
+              </button>
+            </div>
+          </div>
+
+          <!-- Tier Governance Detail Card -->
+          <div class="figure-card" id="archDetailCard" aria-live="polite">
+            <!-- Populated by JS -->
+          </div>
+        </div>
+      </section>
+
+    </main>
+
+    <!-- Bottom Slide Navigation Controls -->
+    <footer class="deck-controls">
+      <div class="nav-btn-group">
+        <button type="button" class="nav-btn nav-btn-prev" id="prevBtn" onclick="prevSlide()" disabled>
+          <i data-lucide="chevron-left" aria-hidden="true" style="width:18px;height:18px;"></i>
+          <span>上一頁</span>
+        </button>
+        <button type="button" class="nav-btn nav-btn-next" id="nextBtn" onclick="nextSlide()">
+          <span>下一頁</span>
+          <i data-lucide="chevron-right" aria-hidden="true" style="width:18px;height:18px;"></i>
+        </button>
+      </div>
+
+      <div class="deck-progress">
+        <span class="progress-counter" id="slideCounter">Slide 1 / 7</span>
+        <div class="progress-dots" id="progressDots" aria-label="簡報進度指示器">
+          <button type="button" class="progress-dot is-active" onclick="goToSlide(0)" aria-label="前往第 1 頁"></button>
+          <button type="button" class="progress-dot" onclick="goToSlide(1)" aria-label="前往第 2 頁"></button>
+          <button type="button" class="progress-dot" onclick="goToSlide(2)" aria-label="前往第 3 頁"></button>
+          <button type="button" class="progress-dot" onclick="goToSlide(3)" aria-label="前往第 4 頁"></button>
+          <button type="button" class="progress-dot" onclick="goToSlide(4)" aria-label="前往第 5 頁"></button>
+          <button type="button" class="progress-dot" onclick="goToSlide(5)" aria-label="前往第 6 頁"></button>
+          <button type="button" class="progress-dot" onclick="goToSlide(6)" aria-label="前往第 7 頁"></button>
+        </div>
+      </div>
+
+      <div class="kbd-hint">快捷鍵：← / → 切換頁面 · 數字鍵 1–7 快速跳轉</div>
+    </footer>
+  </div>
+
+  <script>
+    // Read CSS custom properties so Chart.js stays 100% bound to :root tokens
+    function getToken(name) {
+      return getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+    }
+
+    const totalSlides = 7;
+    let currentSlide = 0;
+    let isOverview = false;
+    let exceptionChart = null;
+    let dosageChart = null;
+    let slide2ChartMode = 'doughnut';
+    let slide3ChartMode = 'rate';
+    let selectedCauseIdx = 0;
+
+    // Slide 2 exact v5 data (109 exception handling events)
+    const exceptionData = [
+      {
+        label: `配方/製程調整（補料）`,
+        shortLabel: `配方/製程調整（補料）`,
+        count: 46,
+        pct: 42.20,
+        pctDisplay: `42.2%`,
+        desc: `首要異常成因：產線線上補加酸鹼調節劑（如 COT0008XX00）、增稠聚合物或乳化調整劑。`,
+        token: `--data-1`
+      },
+      {
+        label: `重攪 / 再均質`,
+        shortLabel: `重攪 / 再均質`,
+        count: 36,
+        pct: 33.03,
+        pctDisplay: `33.0%`,
+        desc: `第二大異常成因：半成品黏度不均或分層，須回溫 60°C/80°C 再均質或二次攪拌。`,
+        token: `--data-2`
+      },
+      {
+        label: `規格偏離/持續觀察（特採放行）`,
+        shortLabel: `規格偏離/特採放行`,
+        count: 22,
+        pct: 20.18,
+        pctDisplay: `20.2%`,
+        desc: `物理或 pH 數據落於邊界區間，未經物理重工即經主管特採放行或觀察後放行。`,
+        token: `--data-3`
+      },
+      {
+        label: `顆粒未打散/濾袋過濾`,
+        shortLabel: `顆粒過濾處置`,
+        count: 4,
+        pct: 3.67,
+        pctDisplay: `3.7%`,
+        desc: `桶內出現黑色顆粒、析出物或未分散膠體，於現場使用濾袋進行物理過濾去除。`,
+        token: `--data-4`
+      },
+      {
+        label: `機械設備故障污染（報廢）`,
+        shortLabel: `設備漏油報廢`,
+        count: 1,
+        pct: 0.92,
+        pctDisplay: `0.9%`,
+        desc: `BMK0029 批號 BFA043B02（250 kg）因機械軸封漏油污染半成品，判 NO 整鍋報廢。`,
+        token: `--data-5`
+      }
+    ];
+
+    // Slide 3 exact v5 dosage form data
+    const dosageData = [
+      { code: `BCL`, name: `Clean 清潔類`, total: 55, defect: 7, rate: 12.73 },
+      { code: `BCR`, name: `Cream 霜類`, total: 5, defect: 0, rate: 0.00 },
+      { code: `BGE`, name: `Gel 膠類`, total: 6, defect: 3, rate: 50.00 },
+      { code: `BLO`, name: `Lotion 精華液類`, total: 213, defect: 53, rate: 24.88 },
+      { code: `BMI`, name: `Milk 乳液類`, total: 89, defect: 33, rate: 37.08 },
+      { code: `BMK`, name: `Mask 面膜類`, total: 52, defect: 13, rate: 25.00 }
+    ];
+
+    // Slide 4 P1-P10 high-risk products grounded in source audit & v5
+    const p10Products = [
+      {
+        rank: `P1`,
+        code: `BMK0029`,
+        name: `維生素B3菸鹼醯胺面膜`,
+        dosage: `BMK 面膜類 · B版 (XB00)`,
+        category: `scrap`,
+        summary: `機台漏油污染整鍋報廢（250 kg）`,
+        riskClass: `risk-critical`,
+        riskLabel: `極高危 · 污染報廢`,
+        keyMetric: `BFA043B02 判 NO 報廢`,
+        batchesNote: `9/24 報廢 · 10/05 同批號再測疑義`,
+        rootCause: `批號 BFA043B02 於 2026/09/24 發生機台漏油造成半成品污染、整鍋報廢（250 kg）；10/05 又以相同批號出現 OK 且 pH 6.03 低於規格 6.1–7.1。另有工作表名稱 XB00 與廠編 XX00 不一致需品管結案。`,
+        action: `立即拆檢涉事機台油封建立開機前 PM 點檢表；嚴格規範報廢批號不可沿用重測覆蓋，並完成規格版本雙重確認。`
+      },
+      {
+        rank: `P2`,
+        code: `BMI0007`,
+        name: `5%杏仁酸抗痘修護身體乳`,
+        dosage: `BMI 乳液類 · J版`,
+        category: `scrap`,
+        summary: `黑色顆粒過濾後重攪變豆花狀報廢`,
+        riskClass: `risk-critical`,
+        riskLabel: `極高危 · 乳化報廢`,
+        keyMetric: `BFU021J10 整桶報廢 (100 kg)`,
+        batchesNote: `含過濾、豆花狀無法調整及多次重攪`,
+        rootCause: `批號 BFU021J10（2026/07/03）檢驗發現桶內有黑色顆粒，先用濾袋過濾並補料調整；7/10 重攪後整桶內料乳化崩解呈現「豆花狀」，無法調整最終報廢。另有其他批次出現重攪與多次覆驗。`,
+        action: `禁止對不穩定酸類乳液進行無上限暴力重攪；檢討原料預混過濾網目、酸鹼加入時機與設備清潔死角。`
+      },
+      {
+        rank: `P3`,
+        code: `BMI0054`,
+        name: `神經醯胺多重修復保濕精華乳`,
+        dosage: `BMI 乳液類 · C版`,
+        category: `remix`,
+        summary: `12/19 高頻率重攪、補料與顆粒異常`,
+        riskClass: `risk-high`,
+        riskLabel: `高危 · 高頻重攪`,
+        keyMetric: `12 / 19 紀錄列異常處置`,
+        batchesNote: `黏度劇烈震盪 (7,327–13,935 cP)`,
+        rootCause: `全年度高頻發生黏度不足或過高、局部出現顆粒，需連續執行「重攪＋補加原料」甚至特採先放行觀察，顯示現有均質條件與乳化穩定度不足以支撐批次重現性。`,
+        action: `重新驗證乳化均質時間、轉速（rpm）與降溫曲線，適度微調增稠分散劑預泡工藝以穩定黏度區間。`
+      },
+      {
+        rank: `P4`,
+        code: `BLO0145`,
+        name: `3%白藜蘆醇精華-Classic`,
+        dosage: `BLO 精華液類 · D版`,
+        category: `remix`,
+        summary: `5/6 高頻率外觀微霧、加熱 60°C 重攪`,
+        riskClass: `risk-high`,
+        riskLabel: `高危 · 回溫均質`,
+        keyMetric: `5 / 6 紀錄列異常處置`,
+        batchesNote: `外觀微霧補加 4% CMO0014XX00`,
+        rootCause: `初驗外觀反覆呈現「微霧」不澄清，產線需常態性補加 4% CMO0014XX00 助溶並「加熱至 60°C 重攪」，甚至需先放行觀察，反映原始製程溶解溫度與分散時間不足。`,
+        action: `將 60°C 加熱溶解與助溶劑基礎用量納入正式標準製程參數（SOP），消除事後返工回溫循環。`
+      },
+      {
+        rank: `P5`,
+        code: `BLO0006`,
+        name: `20%杏仁酸深層煥膚精華`,
+        dosage: `BLO 精華液類 · M版`,
+        category: `ph`,
+        summary: `pH 偏低補加鹼劑與特採放行並存`,
+        riskClass: `risk-high`,
+        riskLabel: `高危 · 酸鹼失衡`,
+        keyMetric: `100% 評估批數發生補料/放行`,
+        batchesNote: `初驗 pH 3.54–3.62；規格文字矛盾`,
+        rootCause: `多批初驗 pH 偏低（3.54–3.62）須補加 COT0008XX00，且存在 pH 3.64 偏低仍採特採放行。此外原始規格同時標示「3.8–4.2」與「3.8±0.2（3.6–4.0）」，上下限定義衝突。`,
+        action: `立即由 R&D 與 QC 統一正式 pH 規格上下限，並上調基礎配方中 COT0008XX00 預調劑量。`
+      },
+      {
+        rank: `P6`,
+        code: `BLO0197`,
+        name: `控油抗痘雙重精華 (0.3%A醇+10%杏仁酸)`,
+        dosage: `BLO 精華液類 · B版`,
+        category: `ph`,
+        summary: `生產 5 批 100% 異常：低 pH 補料＋過濾`,
+        riskClass: `risk-high`,
+        riskLabel: `高危 · 100% 補料`,
+        keyMetric: `5 / 5 批全數重複處置`,
+        batchesNote: `初驗 pH 2.93–3.03 · BFM026B02 析出物過濾`,
+        rootCause: `初驗 pH 僅 2.93–3.03（遠低於標準 3.5–4.1），每批均須補加 1.14%–2.58% COT0008XX00 並重做 QC；批號 BFM026B02 亦發生析出物須過濾，為全廠酸鹼補料最頻繁單品。`,
+        action: `徹底重算 A 醇與杏仁酸複合體系之緩衝鹼劑基礎投料比，並增設出料前標準微濾關卡。`
+      },
+      {
+        rank: `P7`,
+        code: `BMI0055`,
+        name: `彈力凍齡精華乳`,
+        dosage: `BMI 乳液類 · C版`,
+        category: `remix`,
+        summary: `混合不均重攪、加熱 80°C 均質與 pH 偏高`,
+        riskClass: `risk-high`,
+        riskLabel: `高危 · 多重重工`,
+        keyMetric: `高頻重攪＋80°C 加熱補救`,
+        batchesNote: `黏度 425–1,809 cP 劇烈波動`,
+        rootCause: `呈現混合不均重攪、pH 偏高特採放行（4.74–5.99 波動）、補加 CEM0003XX00 後須「加熱至 80°C 重新均質攪拌」，並包含 2 週與 4 週追蹤觀察列，製程穩定度極低。`,
+        action: `鎖定 80°C 乳化保溫均質時間與冷卻速率，並檢討 pH 上限與增稠劑分散 SOP。`
+      },
+      {
+        rank: `P8`,
+        code: `BLO0003`,
+        name: `25%杏仁酸深層煥膚精華`,
+        dosage: `BLO 精華液類 · M版`,
+        category: `ph`,
+        summary: `高濃度酸類 100% 線上補加 COT0008XX00`,
+        riskClass: `risk-med`,
+        riskLabel: `中高危 · 全批補料`,
+        keyMetric: `100% 批次須補加鹼劑`,
+        batchesNote: `初驗 pH 3.59–3.60 → 調整至 3.77–3.89`,
+        rootCause: `高濃度 25% 杏仁酸配方初期鹼劑比例明顯低估，導致全數生產批次（BED059M13、BFA025M13）初驗皆須補加 COT0008XX00 後方能覆驗達標。`,
+        action: `依現行實際總加鹼量直接修訂 BOM 基準投料量，消除每批例行性線上調 pH 工時。`
+      },
+      {
+        rank: `P9`,
+        code: `BLO0171`,
+        name: `Lab.Smart Plus-1.2%神經醯胺+10%B5精華`,
+        dosage: `BLO 精華液類 · C版`,
+        category: `remix`,
+        summary: `黏度跳動重攪覆驗與 pH 過高無法調整`,
+        riskClass: `risk-med`,
+        riskLabel: `中高危 · 黏度失穩`,
+        keyMetric: `黏度 7,428–13,028 cP 震盪`,
+        batchesNote: `含儀器超限、重攪與先放行紀錄`,
+        rootCause: `高比例 B5 與神經醯胺體系在拌合過程黏度差異顯著（BFS004C03 測得 7,428 cP 重攪至 10,545 cP），部分批次則因 pH 過高無法調整而採先放行處置。`,
+        action: `優化高濃度 B5 投料溫度與增稠膠體預泡程序，並覆核該配方 pH 與黏度規格容許區間。`
+      },
+      {
+        rank: `P10`,
+        code: `BCL0036`,
+        name: `杏仁酸控油調理洗髮精`,
+        dosage: `BCL 清潔類 · D版`,
+        category: `remix`,
+        summary: `4 批發生重攪，部分批次補加 COT0008XX00`,
+        riskClass: `risk-med`,
+        riskLabel: `中高危 · 清潔重攪`,
+        keyMetric: `清潔劑型最高重工頻率`,
+        batchesNote: `BFF017D04 等 4 批均質重攪`,
+        rootCause: `清潔類唯一高頻異常品項，連續 4 批（BFF017D04、BEM063D04、BEM064D04、BFY053D04）因黏度或均勻度需重新攪拌，其中 BFF017D04 另需補加 0.12% COT0008XX00。`,
+        action: `檢討界面活性劑與杏仁酸混合階段之攪拌轉速及除泡靜置時間，確保批次黏度穩定（1,009–1,350 cP）。`
+      }
+    ];
+
+    let currentP10Filter = 'all';
+    let selectedP10Code = 'BMK0029';
+
+    // Slide 7 3D Architecture Data
+    const archTierInfo = {
+      l1: {
+        badge: `LAYER 01 · FORMULATION / SKU TIER`,
+        title: `現行有效配方品項層：102 項`,
+        kpi: `38 項異常 / 64 項正常（品項異常率 37.3%）`,
+        summary: `以 2026 年仍有實際生產 QC 紀錄之「最新有效配方版本」為評估母體，逐一比對原始 TXT 檔名、工作表名稱與廠編末三碼版本序。`,
+        rules: [
+          `版本純化：排除歷史舊版本混入（如 BMK0004 舊版 X01 列），確保統計反映現行工藝能力。`,
+          `代碼校正：修正 BGE0001 與 BGE0017 品名張冠李戴錯誤，並補回遺漏之高危品項 BMK0029。`,
+          `跨年度隔離：排除僅於 2026/01/05 覆驗但實際製造於 2025/12/31 之 BMI0064（BED047X01）舊批。`
+        ]
+      },
+      l2: {
+        badge: `LAYER 02 · INDEPENDENT BATCH TIER`,
+        title: `獨立生產批次層：314 批`,
+        kpi: `79 批異常/重工/特採 / 235 批一次過關（批次異常率 25.2%）`,
+        summary: `將明細表中同一批次因「補料、重攪、過濾、覆驗」產生的多列紀錄，依據「品項代碼＋批號」歸併為單一獨立生產批次作為分母。`,
+        rules: [
+          `杜絕分母灌水：例如 BMI0007 批號 BFU021J10 占 3 列、BLO0197 每批占 2–3 列，歸併後各僅計 1 批，不再低估異常率。`,
+          `空批號繼承與錯位歸位：將原誤植於批號欄的「加熱至60℃重攪」、「.+0.03%COT0008XX00」移回說明欄並補回所屬批號。`,
+          `整批層級判定：只要單一批次歷程中曾出現補料、重攪、過濾、特採放行或報廢，即認定為異常批次（79 批）。`
+        ]
+      },
+      l3: {
+        badge: `LAYER 03 · QC HANDLING RECORD TIER`,
+        title: `有效 QC 檢測與處置紀錄列層：420 筆`,
+        kpi: `109 筆異常處置 / 311 筆正常檢測（紀錄異常率 26.0%）`,
+        summary: `於所有非空 2026 QC 檢測列中，精準剔除 17 筆僅屬「雙黏度計（Brook / Atago）方法切換」或「超過 15 天未充填之常規複測」干擾列。`,
+        rules: [
+          `雙機台去噪：BCL0033 之 BROOK/ATAGO 與 BLO0228 之雙方法測試列不計入異常重工，避免將儀器識別誤判為品質不良。`,
+          `物性欄位分離：將原混在黏度欄的比重數值（SG 0.964–1.178）獨立分欄，並修正 106e3 等字串格式錯誤。`,
+          `109 筆五維分類：將所有實質異常完整歸類為補料（46）、重攪（36）、特採觀察（22）、過濾（4）與設備漏油報廢（1）。`
+        ]
+      }
+    };
+
+    // Navigation Functions (Hoisted)
+    function goToSlide(index) {
+      if (index < 0 || index >= totalSlides) return;
+      currentSlide = index;
+      const slides = document.querySelectorAll('.slide');
+      const tabs = document.querySelectorAll('.slide-tab');
+      const dots = document.querySelectorAll('.progress-dot');
+
+      slides.forEach(function(s, i) {
+        s.classList.toggle('is-active', i === index);
+      });
+      tabs.forEach(function(t, i) {
+        t.classList.toggle('is-active', i === index);
+      });
+      dots.forEach(function(d, i) {
+        d.classList.toggle('is-active', i === index);
+      });
+
+      const counterEl = document.getElementById('slideCounter');
+      if (counterEl) counterEl.textContent = `Slide ${index + 1} / ${totalSlides}`;
+
+      const prevBtn = document.getElementById('prevBtn');
+      const nextBtn = document.getElementById('nextBtn');
+      if (prevBtn) prevBtn.disabled = index === 0;
+      if (nextBtn) nextBtn.disabled = index === totalSlides - 1;
+
+      if (index === 1) {
+        ensureExceptionChart();
+      }
+      if (index === 2) {
+        ensureDosageChart();
+      }
+    }
+
+    function prevSlide() {
+      if (currentSlide > 0) goToSlide(currentSlide - 1);
+    }
+
+    function nextSlide() {
+      if (currentSlide < totalSlides - 1) goToSlide(currentSlide + 1);
+    }
+
+    function toggleOverviewMode() {
+      isOverview = !isOverview;
+      const shell = document.getElementById('deckShell');
+      const btn = document.getElementById('overviewToggleBtn');
+      const lbl = document.getElementById('overviewToggleLabel');
+      if (shell) shell.classList.toggle('is-overview', isOverview);
+      if (btn) btn.classList.toggle('is-active', isOverview);
+      if (lbl) lbl.textContent = isOverview ? `返回單頁簡報` : `展開全頁總覽`;
+
+      if (isOverview) {
+        ensureExceptionChart();
+        ensureDosageChart();
+      }
+    }
+
+    // Slide 2: Chart.js Donut / Horizontal Bar + Interactive Cause List
+    function buildCauseList() {
+      const container = document.getElementById('causeList');
+      if (!container) return;
+      const colors = exceptionData.map(function(d) { return getToken(d.token); });
+      container.innerHTML = exceptionData.map(function(d, idx) {
+        const selectedClass = idx === selectedCauseIdx ? 'is-selected' : '';
+        return `
+          <button type="button" class="cause-item ${selectedClass}" onclick="selectCause(${idx})">
+            <span class="cause-swatch" style="background:${colors[idx]};" aria-hidden="true"></span>
+            <div>
+              <div class="cause-name">${d.label}</div>
+              <div class="cause-desc">${d.desc}</div>
+            </div>
+            <div class="cause-metrics">
+              <div class="cause-count">${d.count} 筆</div>
+              <div class="cause-pct">${d.pct.toFixed(2)}%</div>
+            </div>
+          </button>
+        `;
+      }).join('');
+    }
+
+    function selectCause(idx) {
+      selectedCauseIdx = idx;
+      buildCauseList();
+      if (exceptionChart) {
+        exceptionChart.setActiveElements([{ datasetIndex: 0, index: idx }]);
+        exceptionChart.tooltip.setActiveElements([{ datasetIndex: 0, index: idx }], { x: 0, y: 0 });
+        exceptionChart.update();
+      }
+    }
+
+    function setSlide2ChartMode(mode) {
+      slide2ChartMode = mode;
+      const b1 = document.getElementById('s2-btn-doughnut');
+      const b2 = document.getElementById('s2-btn-bar');
+      if (b1) b1.classList.toggle('is-active', mode === 'doughnut');
+      if (b2) b2.classList.toggle('is-active', mode === 'bar');
+      if (exceptionChart) {
+        exceptionChart.destroy();
+        exceptionChart = null;
+      }
+      ensureExceptionChart();
+    }
+
+    function ensureExceptionChart() {
+      const canvas = document.getElementById('exceptionChart');
+      if (!canvas) return;
+      if (exceptionChart) {
+        exceptionChart.resize();
+        return;
+      }
+      const colors = exceptionData.map(function(d) { return getToken(d.token); });
+      const inkColor = getToken('--on-surface');
+      const mutedColor = getToken('--on-surface-variant');
+      const gridColor = getToken('--outline-variant');
+      const labels = exceptionData.map(function(d) { return d.label; });
+      const counts = exceptionData.map(function(d) { return d.count; });
+
+      const tooltipConfig = {
+        backgroundColor: getToken('--on-surface'),
+        titleColor: getToken('--on-primary'),
+        bodyColor: getToken('--on-primary'),
+        padding: 12,
+        cornerRadius: 4,
+        callbacks: {
+          title: function(items) {
+            if (!items || !items.length) return '';
+            const idx = items[0].dataIndex;
+            return exceptionData[idx].label;
+          },
+          label: function(ctx) {
+            const d = exceptionData[ctx.dataIndex];
+            return ` 異常筆數：${d.count} 筆（佔比 ${d.pct.toFixed(2)}% / ${d.pctDisplay}）`;
+          },
+          afterLabel: function(ctx) {
+            const d = exceptionData[ctx.dataIndex];
+            return ` 說明：${d.desc}`;
+          }
+        }
+      };
+
+      if (slide2ChartMode === 'doughnut') {
+        exceptionChart = new Chart(canvas, {
+          type: 'doughnut',
+          data: {
+            labels: labels,
+            datasets: [{
+              data: counts,
+              backgroundColor: colors,
+              borderColor: getToken('--surface-container-low'),
+              borderWidth: 3,
+              hoverOffset: 10
+            }]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            cutout: '56%',
+            plugins: {
+              legend: {
+                position: 'bottom',
+                labels: {
+                  color: inkColor,
+                  boxWidth: 12,
+                  padding: 14,
+                  font: { family: getToken('--font-body'), size: 12, weight: '600' }
+                }
+              },
+              tooltip: tooltipConfig
+            },
+            onClick: function(evt, elements) {
+              if (elements && elements.length > 0) {
+                selectedCauseIdx = elements[0].index;
+                buildCauseList();
+              }
+            }
+          }
+        });
+      } else {
+        exceptionChart = new Chart(canvas, {
+          type: 'bar',
+          data: {
+            labels: exceptionData.map(function(d) { return d.shortLabel; }),
+            datasets: [{
+              label: `異常處置筆數`,
+              data: counts,
+              backgroundColor: colors,
+              borderRadius: 2
+            }]
+          },
+          options: {
+            indexAxis: 'y',
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+              x: {
+                beginAtZero: true,
+                max: 55,
+                grid: { color: gridColor },
+                ticks: {
+                  color: mutedColor,
+                  font: { family: getToken('--font-label'), size: 11 }
+                }
+              },
+              y: {
+                grid: { display: false },
+                ticks: {
+                  color: inkColor,
+                  font: { family: getToken('--font-body'), size: 12, weight: '600' }
+                }
+              }
+            },
+            plugins: {
+              legend: { display: false },
+              tooltip: tooltipConfig
+            },
+            onClick: function(evt, elements) {
+              if (elements && elements.length > 0) {
+                selectedCauseIdx = elements[0].index;
+                buildCauseList();
+              }
+            }
+          }
+        });
+      }
+    }
+
+    // Slide 3: Cross-Category Dosage Form Chart
+    function setSlide3ChartMode(mode) {
+      slide3ChartMode = mode;
+      const b1 = document.getElementById('s3-btn-rate');
+      const b2 = document.getElementById('s3-btn-count');
+      if (b1) b1.classList.toggle('is-active', mode === 'rate');
+      if (b2) b2.classList.toggle('is-active', mode === 'count');
+      if (dosageChart) {
+        dosageChart.destroy();
+        dosageChart = null;
+      }
+      ensureDosageChart();
+    }
+
+    function ensureDosageChart() {
+      const canvas = document.getElementById('dosageChart');
+      if (!canvas) return;
+      if (dosageChart) {
+        dosageChart.resize();
+        return;
+      }
+      const inkColor = getToken('--on-surface');
+      const mutedColor = getToken('--on-surface-variant');
+      const gridColor = getToken('--outline-variant');
+      const labels = dosageData.map(function(d) { return `${d.code} ${d.name.split(' ')[0]}`; });
+
+      if (slide3ChartMode === 'rate') {
+        const barColors = dosageData.map(function(d) {
+          if (d.rate >= 35) return getToken('--data-4');
+          if (d.rate >= 20) return getToken('--data-2');
+          if (d.rate > 0) return getToken('--data-1');
+          return getToken('--data-3');
+        });
+        dosageChart = new Chart(canvas, {
+          type: 'bar',
+          data: {
+            labels: labels,
+            datasets: [{
+              label: `QC 異常率 (%)`,
+              data: dosageData.map(function(d) { return d.rate; }),
+              backgroundColor: barColors,
+              borderRadius: 2
+            }]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+              y: {
+                beginAtZero: true,
+                max: 60,
+                grid: { color: gridColor },
+                ticks: {
+                  color: mutedColor,
+                  callback: function(val) { return `${val}%`; },
+                  font: { family: getToken('--font-label'), size: 11 }
+                }
+              },
+              x: {
+                grid: { display: false },
+                ticks: {
+                  color: inkColor,
+                  font: { family: getToken('--font-body'), size: 12, weight: '600' }
+                }
+              }
+            },
+            plugins: {
+              legend: { display: false },
+              tooltip: {
+                backgroundColor: getToken('--on-surface'),
+                titleColor: getToken('--on-primary'),
+                bodyColor: getToken('--on-primary'),
+                padding: 12,
+                cornerRadius: 4,
+                callbacks: {
+                  label: function(ctx) {
+                    const d = dosageData[ctx.dataIndex];
+                    return ` 異常率：${d.rate.toFixed(2)}%（${d.defect} 筆異常 / 共 ${d.total} 筆 QC）`;
+                  }
+                }
+              }
+            }
+          }
+        });
+      } else {
+        dosageChart = new Chart(canvas, {
+          type: 'bar',
+          data: {
+            labels: labels,
+            datasets: [
+              {
+                label: `正常 QC 紀錄`,
+                data: dosageData.map(function(d) { return d.total - d.defect; }),
+                backgroundColor: getToken('--data-3'),
+                borderRadius: 2
+              },
+              {
+                label: `異常處置紀錄`,
+                data: dosageData.map(function(d) { return d.defect; }),
+                backgroundColor: getToken('--data-4'),
+                borderRadius: 2
+              }
+            ]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+              x: {
+                stacked: true,
+                grid: { display: false },
+                ticks: {
+                  color: inkColor,
+                  font: { family: getToken('--font-body'), size: 12, weight: '600' }
+                }
+              },
+              y: {
+                stacked: true,
+                beginAtZero: true,
+                grid: { color: gridColor },
+                ticks: {
+                  color: mutedColor,
+                  font: { family: getToken('--font-label'), size: 11 }
+                }
+              }
+            },
+            plugins: {
+              legend: {
+                position: 'top',
+                labels: {
+                  color: inkColor,
+                  boxWidth: 12,
+                  font: { family: getToken('--font-body'), size: 12, weight: '600' }
+                }
+              },
+              tooltip: {
+                backgroundColor: getToken('--on-surface'),
+                titleColor: getToken('--on-primary'),
+                bodyColor: getToken('--on-primary'),
+                padding: 12,
+                cornerRadius: 4,
+                callbacks: {
+                  afterBody: function(items) {
+                    if (!items || !items.length) return '';
+                    const d = dosageData[items[0].dataIndex];
+                    return `總筆數：${d.total} 筆 · 異常率：${d.rate.toFixed(2)}%`;
+                  }
+                }
+              }
+            }
+          }
+        });
+      }
+    }
+
+    // Slide 4: P1-P10 Table & Detail Inspector
+    function renderP10Table() {
+      const tbody = document.getElementById('p10TableBody');
+      const countLbl = document.getElementById('p10CountLabel');
+      if (!tbody) return;
+
+      const filtered = p10Products.filter(function(p) {
+        return currentP10Filter === 'all' || p.category === currentP10Filter;
+      });
+
+      if (countLbl) countLbl.textContent = `顯示 ${filtered.length} / ${p10Products.length} 項高風險品項`;
+
+      if (filtered.length > 0 && !filtered.some(function(p) { return p.code === selectedP10Code; })) {
+        selectedP10Code = filtered[0].code;
+      }
+
+      tbody.innerHTML = filtered.map(function(p) {
+        const isSel = p.code === selectedP10Code ? 'is-selected' : '';
+        return `
+          <tr class="is-clickable ${isSel}" onclick="selectP10Product('${p.code}')">
+            <td><strong>${p.rank}</strong></td>
+            <td style="font-family:var(--font-label);font-weight:600;">${p.code}</td>
+            <td>
+              <div style="font-weight:600;">${p.name}</div>
+              <div style="font-size:0.78rem;color:var(--on-surface-variant);">${p.dosage}</div>
+            </td>
+            <td style="font-size:0.84rem;">${p.summary}</td>
+            <td><span class="risk-tag ${p.riskClass}">${p.riskLabel}</span></td>
+          </tr>
+        `;
+      }).join('');
+
+      renderP10Inspector();
+    }
+
+    function renderP10Inspector() {
+      const box = document.getElementById('p10Inspector');
+      if (!box) return;
+      const item = p10Products.find(function(p) { return p.code === selectedP10Code; }) || p10Products[0];
+
+      box.innerHTML = `
+        <div style="display:flex;justify-content:space-between;align-items:center;gap:var(--space-sm);flex-wrap:wrap;">
+          <span class="dossier-pill">${item.rank} · ${item.code}</span>
+          <span class="risk-tag ${item.riskClass}">${item.riskLabel}</span>
+        </div>
+        <div>
+          <h2 class="chart-title" style="font-size:1.25rem;">${item.name}</h2>
+          <div style="font-size:0.84rem;color:var(--secondary);font-weight:600;margin-top:2px;">${item.dosage}</div>
+        </div>
+        <div class="inspector-meta-grid">
+          <div>
+            <div class="meta-cell-label">關鍵異常指標</div>
+            <div class="meta-cell-val">${item.keyMetric}</div>
+          </div>
+          <div>
+            <div class="meta-cell-label">異常批次特徵</div>
+            <div class="meta-cell-val">${item.batchesNote}</div>
+          </div>
+        </div>
+        <div>
+          <div class="meta-cell-label" style="margin-bottom:4px;">稽核根因診斷</div>
+          <p class="aside-copy">${item.rootCause}</p>
+        </div>
+        <div class="aside-box is-highlight" style="margin-top:auto;">
+          <div class="aside-title">建議立即改善處置</div>
+          <p class="aside-copy">${item.action}</p>
+        </div>
+      `;
+    }
+
+    function selectP10Product(code) {
+      selectedP10Code = code;
+      renderP10Table();
+    }
+
+    function filterPriority(cat, btnEl) {
+      currentP10Filter = cat;
+      const buttons = btnEl ? btnEl.parentElement.querySelectorAll('.filter-btn') : [];
+      buttons.forEach(function(b) { b.classList.remove('is-active'); });
+      if (btnEl) btnEl.classList.add('is-active');
+      renderP10Table();
+    }
+
+    // Slide 6: Roadmap Department Filter
+    function filterRoadmapDept(dept, btnEl) {
+      const buttons = btnEl ? btnEl.parentElement.querySelectorAll('.filter-btn') : [];
+      buttons.forEach(function(b) { b.classList.remove('is-active'); });
+      if (btnEl) btnEl.classList.add('is-active');
+
+      const tasks = document.querySelectorAll('#roadmapGrid .task-card');
+      tasks.forEach(function(card) {
+        const cardDept = card.getAttribute('data-dept');
+        const dimmed = dept !== 'all' && cardDept !== dept;
+        card.classList.toggle('is-dimmed', dimmed);
+      });
+    }
+
+    // Slide 7: 3D Architecture Tier Selection
+    function selectArchTier(tierKey) {
+      const layers = document.querySelectorAll('#isoStack .iso-layer');
+      layers.forEach(function(el) {
+        el.classList.toggle('is-selected', el.getAttribute('data-tier') === tierKey);
+      });
+      const detail = archTierInfo[tierKey];
+      const card = document.getElementById('archDetailCard');
+      if (!card || !detail) return;
+
+      const listItems = detail.rules.map(function(r) {
+        return `<li>${r}</li>`;
+      }).join('');
+
+      card.innerHTML = `
+        <div style="display:flex;justify-content:space-between;align-items:center;gap:var(--space-sm);flex-wrap:wrap;">
+          <span class="dossier-pill">${detail.badge}</span>
+        </div>
+        <h2 class="chart-title" style="font-size:1.3rem;">${detail.title}</h2>
+        <div class="kpi-rate-badge rate-info">${detail.kpi}</div>
+        <p class="aside-copy">${detail.summary}</p>
+        <div style="border-top:1px solid var(--outline-variant);padding-top:var(--space-sm);">
+          <div class="meta-cell-label" style="margin-bottom:var(--space-xs);">本層級資料清洗與歸併核心規範</div>
+          <ul class="strategy-bullets">${listItems}</ul>
+        </div>
+      `;
+    }
+
+    // Keyboard shortcuts
+    document.addEventListener('keydown', function(e) {
+      if (e.target && (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA' || e.target.tagName === 'SELECT')) {
+        return;
+      }
+      if (e.key === 'ArrowRight' || e.key === 'PageDown') {
+        if (!isOverview) {
+          e.preventDefault();
+          nextSlide();
+        }
+      } else if (e.key === 'ArrowLeft' || e.key === 'PageUp') {
+        if (!isOverview) {
+          e.preventDefault();
+          prevSlide();
+        }
+      } else if (e.key >= '1' && e.key <= '7') {
+        if (!isOverview) {
+          goToSlide(parseInt(e.key, 10) - 1);
+        }
+      }
+    });
+
+    // Initialize on DOMContentLoaded
+    document.addEventListener('DOMContentLoaded', function() {
+      buildCauseList();
+      renderP10Table();
+      selectArchTier('l1');
+      if (typeof lucide !== 'undefined' && lucide.createIcons) {
+        lucide.createIcons();
+      }
+    });
+  </script>
+</body>
+</html>
